@@ -3,6 +3,7 @@ import time
 
 '''
 Change log
+1.0.3 - fixed bullet initial position!
 1.0.2 - you can shoot bullets with space key!
 1.0.1 - you can move the aircraft with arrow keys!
 1.0.0 - initial version
@@ -35,6 +36,9 @@ move_L, move_R, move_U, move_D = 0, 0, 0, 0
 
 # 子弹类
 bullet_surf = pygame.image.load('bullet_hero.png')
+bullet_width = bullet_surf.get_width()
+bullet_height = bullet_surf.get_height()
+
 bullet_speed = 1
 
 bullets = []
@@ -54,7 +58,7 @@ while True:
             elif event.key == pygame.K_DOWN:
                 move_D = 1
             elif event.key == pygame.K_SPACE:
-                new_bullet = [x, y]
+                new_bullet = [x + hero_width/2 - bullet_width/2, y - bullet_height]
                 bullets.append(new_bullet)
 
         elif event.type == pygame.KEYUP:
