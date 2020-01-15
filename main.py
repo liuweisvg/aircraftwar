@@ -1,8 +1,10 @@
 import pygame, sys
 import time
+import random
 
 '''
 Change log
+1.0.4 - enemies are automatically spawned!
 1.0.3 - fixed bullet initial position!
 1.0.2 - you can shoot bullets with space key!
 1.0.1 - you can move the aircraft with arrow keys!
@@ -38,10 +40,17 @@ move_L, move_R, move_U, move_D = 0, 0, 0, 0
 bullet_surf = pygame.image.load('bullet_hero.png')
 bullet_width = bullet_surf.get_width()
 bullet_height = bullet_surf.get_height()
-
 bullet_speed = 1
-
 bullets = []
+
+# 敌机
+enemy1_surf = pygame.image.load('enemy1.png')
+enemy1_width = enemy1_surf.get_width()
+enemy1_height = enemy1_surf.get_height()
+enemy1_speed = 1
+enemy1s = []
+
+last_enemy_generation_tick = 0
 
 # 事件与更新
 while True:
@@ -72,6 +81,16 @@ while True:
             elif event.key == pygame.K_DOWN:
                 move_D = 0
 
+    # 自动产生敌机
+    tick = pygame.time.get_ticks()
+    if tick - last_enemy_generation_tick >= 1000:
+        last_enemy_generation_tick = tick
+        if random.random() < 0.5:
+            enemy_x = int(screen_width * random.random())
+            enemy_y = -enemy1_height
+            new_enemy = [enemy_x, enemy_y]
+            enemy1s.append(new_enemy)
+
     # 飞机移动后的位置
     x = x + move_R - move_L    
     y = y + move_D - move_U
@@ -80,12 +99,16 @@ while True:
     for bullet in bullets:
         bullet[1] -= bullet_speed
 
-    tick = pygame.time.get_ticks()
+    # 敌人移动后的位置
+    for enemy in enemy1s:
+        enemy[1] += enemy1_speed
 
     # 画图
     screen.fill(BLACK)
     screen.blit(hero_surf, (x, y))
     for bullet in bullets:
         screen.blit(bullet_surf, (bullet[0], bullet[1]))
+    for enemy in enemy1s:
+        screen.blit(enemy1_surf, (enemy[0], enemy[1]))
 
     pygame.display.update() #更新
