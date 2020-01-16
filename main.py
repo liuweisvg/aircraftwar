@@ -5,6 +5,7 @@ import os
 
 '''
 Change log
+1.0.6 - Finished refactoring. Learned the virtual attributes of Rect and convert_alpha()
 1.0.5 - Today I learned KidsCanCode's pygame template!
 http://patreon.com/kidscancode
 1.0.4 - enemies are automatically spawned!
@@ -22,7 +23,9 @@ TITLE = "Aircraft Game"
 
 BLACK = (0, 0, 0)
 
-HERO_SPEED = 3
+HERO_SPEED = 10
+BULLET_SPEED = 20
+ENEMY_SPEED = 5
 
 game_folder = os.path.dirname(__file__)
 img_folder = os.path.join(game_folder, 'img')
@@ -31,7 +34,7 @@ class Hero(pygame.sprite.Sprite):
     # sprite for the Hero
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load(os.path.join(img_folder, "hero.png")).convert()
+        self.image = pygame.image.load(os.path.join(img_folder, "hero.png")).convert_alpha()
         # self.image.fill(GREEN)
         #self.image.set_colorkey(BLACK) # command to ignore the background black color
         self.rect = self.image.get_rect()
@@ -43,6 +46,26 @@ class Hero(pygame.sprite.Sprite):
         self.rect.x += self.x_speed
         self.rect.y += self.y_speed
 
+class Bullet(pygame.sprite.Sprite):
+    # sprite for the Bullet
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load(os.path.join(img_folder, "bullet_hero.png")).convert_alpha()
+        self.rect = self.image.get_rect()
+    
+    def update(self):
+        self.rect.y -= BULLET_SPEED
+
+class Enemy(pygame.sprite.Sprite):
+    # sprite for the Enemy
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load(os.path.join(img_folder, "enemy1.png")).convert_alpha()
+        self.rect = self.image.get_rect()
+    
+    def update(self):
+        self.rect.y += ENEMY_SPEED
+
 # 初始化
 pygame.init()
 pygame.mixer.init()
@@ -53,20 +76,6 @@ clock = pygame.time.Clock()
 all_sprites = pygame.sprite.Group()
 hero = Hero()
 all_sprites.add(hero)
-
-# 子弹类
-bullet_surf = pygame.image.load('bullet_hero.png')
-bullet_width = bullet_surf.get_width()
-bullet_height = bullet_surf.get_height()
-bullet_speed = 3
-bullets = []
-
-# 敌机
-enemy1_surf = pygame.image.load('enemy1.png')
-enemy1_width = enemy1_surf.get_width()
-enemy1_height = enemy1_surf.get_height()
-enemy1_speed = 3
-enemy1s = []
 
 last_enemy_generation_tick = 0
 
@@ -89,9 +98,9 @@ while running:
             elif event.key == pygame.K_DOWN:
                 hero.y_speed = HERO_SPEED
             elif event.key == pygame.K_SPACE:
-                pass
-                #new_bullet = [x + hero_width/2 - bullet_width/2, y - bullet_height]
-                #bullets.append(new_bullet)
+                new_bullet = Bullet()
+                new_bullet.rect.midbottom = hero.rect.midtop
+                all_sprites.add(new_bullet)
 
         elif event.type == pygame.KEYUP:
             # 某个方向的键盘被松开，这个方向的偏移量为0
@@ -109,29 +118,15 @@ while running:
     if tick - last_enemy_generation_tick >= 1000:
         last_enemy_generation_tick = tick
         if random.random() < 0.5:
-            enemy_x = int(WIDTH * random.random())
-            enemy_y = -enemy1_height
-            new_enemy = [enemy_x, enemy_y]
-            enemy1s.append(new_enemy)
+            new_enemy = Enemy()
+            new_enemy.rect.midbottom = (int(WIDTH * random.random()), 0)
+            all_sprites.add(new_enemy)
 
     all_sprites.update()
-
-    # 子弹移动后的位置
-    for bullet in bullets:
-        bullet[1] -= bullet_speed
-
-    # 敌人移动后的位置
-    for enemy in enemy1s:
-        enemy[1] += enemy1_speed
 
     # 画图
     screen.fill(BLACK)
     all_sprites.draw(screen)
-
-    for bullet in bullets:
-        screen.blit(bullet_surf, (bullet[0], bullet[1]))
-    for enemy in enemy1s:
-        screen.blit(enemy1_surf, (enemy[0], enemy[1]))
 
     pygame.display.flip()
 
